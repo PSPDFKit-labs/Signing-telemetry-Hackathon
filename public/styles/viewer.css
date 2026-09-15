@@ -1,0 +1,98 @@
+.PSPDFKit-Form-Creator-Toolbar,
+.PSPDFKit-Form-Creator-Popover {
+  display: none;
+}
+
+/* Ensure viewer content doesn't get hidden under fixed headers */
+.PSPDFKit-Main {
+  padding-top: 10px;
+}
+
+.PSPDFKit-Viewport {
+  background-color: #cdd4dd;
+}
+
+/* Custom Renderers */
+.custom-field {
+  background: #f0f3f9;
+  border: 1px solid #000;
+  color: #000;
+  display: flex;
+  font-size: 11px;
+  padding-left: 5px;
+  position: absolute;
+  text-align: left;
+  top: 0;
+  width: 100%;
+}
+
+.custom-field-icon {
+  display: block;
+  height: auto;
+  left: 5px;
+  margin: 0;
+  position: absolute;
+  /* top: 30px; */
+  width: 17px;
+}
+
+/* Custom Signature Field - Simplified Design */
+.custom-signature-field {
+  background: #f0f3f9;
+  border: 1px solid #000;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.custom-signature-icon {
+  width: 18px;
+  height: auto;
+  margin-right: 10px;
+}
+
+.custom-signature-name {
+  font-size: 12px;
+  color: #000;
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Center text in date form fields */
+input[type="text"].PSPDFKit-Form-Input {
+  text-align: center;
+}
+
+/* Style date field inputs specifically */
+.PSPDFKit-Annotation-Widget input[type="text"] {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Hide custom field overlay when form field is focused */
+.PSPDFKit-Annotation-Widget:focus-within .custom-signature-field {
+  display: none;
+}
+
+/* Hide custom field overlay when the input has a value (non-empty) */
+.PSPDFKit-Annotation-Widget:has(input:not(:placeholder-shown)) .custom-signature-field {
+  display: none;
+}
+
+/* Also hide when input has any value via the valid pseudo-class */
+.PSPDFKit-Annotation-Widget:has(input[value]:not([value=""])) .custom-signature-field {
+  display: none;
+}
+
+/* Hide SDK's default "Sign" badge — custom renderer provides its own labels */
+.PSPDFKit-Annotation-Widget-Signature-Badge {
+  display: none;
+}
+
+/* Dark mode styles are injected dynamically by the toolbar toggle in nutrient-viewer.ts */

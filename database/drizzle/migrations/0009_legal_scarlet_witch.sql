@@ -1,0 +1,1 @@
+ALTER TABLE "documents" DROP COLUMN "esign_compliant";

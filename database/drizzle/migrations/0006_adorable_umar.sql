@@ -1,0 +1,1 @@
+ALTER TYPE "public"."document_access_level" ADD VALUE 'CC';

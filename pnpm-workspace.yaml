@@ -1,0 +1,23 @@
+# pnpm 10 no longer reads the "pnpm" field from package.json — these overrides
+# live here instead. They are security pins, not preferences:
+#
+#   esbuild          >=0.25.0  — GHSA-67mh-4wv8-2f99 (dev server request smuggling)
+#   postcss          >=8.5.23  — GHSA-fxqj-rqcc-2cmp (sourceMappingURL reads
+#                                arbitrary .map files) and the earlier
+#                                GHSA-qx2v-qp2m-jg93 XSS in CSS stringify; also
+#                                forces Next's bundled postcss off 8.4.31
+#   brace-expansion  see below — GHSA DoS via unbounded expansion. Two major
+#                                lines are in the tree, so each is pinned
+#                                separately.
+#   typescript       ^6.0.3    — TypeScript 7 segfaults the Next 16.2/16.3 build
+#                                on Vercel native-x64 (silent exit 1). Do not
+#                                relax this.
+#
+# Verify enforcement after changing: pnpm install, then confirm the "overrides"
+# block is still present in pnpm-lock.yaml.
+overrides:
+  esbuild: '>=0.25.0'
+  postcss: '>=8.5.23'
+  brace-expansion@<1.1.18: '>=1.1.18'
+  brace-expansion@>=5.0.0 <5.0.9: '>=5.0.9'
+  typescript: ^6.0.3

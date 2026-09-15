@@ -1,0 +1,3 @@
+aws_region      = "us-east-1"
+s3_bucket_name  = "your-bucket-name-here"
+allowed_origins = ["https://your-app.vercel.app", "http://localhost:3000"]

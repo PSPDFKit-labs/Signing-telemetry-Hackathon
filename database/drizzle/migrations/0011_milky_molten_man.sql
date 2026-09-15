@@ -1,0 +1,1 @@
+-- Schema snapshot synchronized after 0010_secure_signing_requests.

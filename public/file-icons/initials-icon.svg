@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Initials Icon</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect x="0" y="0" width="24" height="24"></rect>
+        <path d="M5,7 L19,7 L19,17 L5,17 L5,7 Z" stroke="#000000" stroke-width="1.5"></path>
+        <text font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#000000">
+            <tspan x="7.5" y="17">IN</tspan>
+        </text>
+    </g>
+</svg>

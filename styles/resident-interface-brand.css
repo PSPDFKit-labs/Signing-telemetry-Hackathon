@@ -1,0 +1,49 @@
+/* Shared customer branding for the persisted sender workflow and sign-in. */
+.app-frame,
+.login-page {
+  --bg: #f6fbfb;
+  --bg-elev: #fff;
+  --surface: #f6fbfb;
+  --line: #cfe6e4;
+  --line-strong: #a6d3d1;
+  --ink: #111;
+  --ink-2: #222;
+  --ink-3: #525c5b;
+  --ink-4: #62716f;
+  --ink-5: #cfe6e4;
+  --brand-accent: #5ec6c1;
+  --brand-accent-2: #2f8480;
+  --brand-accent-fg: #153e3b;
+  --brand-accent-tint: #eaf8f7;
+  --font-body: var(--font-open-sans), Arial, sans-serif;
+  --font-display: var(--font-open-sans), Arial, sans-serif;
+  --display-style: normal;
+  --display-weight: 600;
+  --background: 180 38% 97%;
+  --foreground: 0 0% 7%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 7%;
+  --muted: 177 35% 94%;
+  --muted-foreground: 174 6% 34%;
+  --border: 175 32% 86%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  color-scheme: light;
+}
+
+.app-frame .btn,
+.login-page .btn {
+  background: var(--brand-accent);
+  border-color: var(--brand-accent);
+  color: #153e3b;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.app-frame .btn.ghost,
+.login-page .btn.ghost {
+  background: #fff;
+  border-color: var(--line-strong);
+  color: var(--ink-2);
+}

@@ -1,0 +1,80 @@
+# Nutrient Sign
+
+> Full-stack document signing app built with Next.js and the Nutrient Web SDK
+
+## What This Is
+
+A sample signing application: upload PDFs, place signature fields, send to recipients via email, collect electronic signatures, and apply digital signatures via the Nutrient DWS API. Published as a reference implementation and starter template — no claims are made about its legal validity, regulatory compliance, or security.
+
+## Tech Stack
+
+- Next.js 16 (App Router, TypeScript, Turbopack)
+- Nutrient Web SDK (@nutrient-sdk/viewer) for PDF viewing and annotation
+- Nutrient DWS API for server-side digital signatures
+- PostgreSQL with Drizzle ORM
+- Auth.js (Google + Microsoft OAuth)
+- AWS S3 for document storage
+- Resend or SendGrid for email
+- Tailwind CSS 4, Radix UI, React Zero UI
+- Terraform for infrastructure
+
+## Architecture
+
+### Signing Flow
+
+1. Owner uploads PDF → S3
+2. Owner places signature/initials/date fields per recipient
+3. System emails each recipient a unique `/sign/[token]` link
+4. Recipient signs electronically (draw, type, or image)
+5. After all sign: DWS Build API appends blank page → DWS Sign API applies CAdES B-LT signature → signed PDF uploaded to S3
+
+### Key Patterns
+
+- Document proxy (`/api/documents/proxy`) handles both session auth and token auth
+- Nutrient viewer loaded from CDN, wrapped in `lib/nutrient-viewer.ts`
+- Digital signatures applied server-side in `lib/digital-signing.ts`
+- System templates seeded on startup via `instrumentation.ts`
+- Soft delete with trash/restore pattern
+
+## Important Files
+
+- `lib/digital-signing.ts` — DWS API integration (build + sign)
+- `lib/nutrient-viewer.ts` — PDF viewer SDK wrapper (load, unload, dark mode)
+- `lib/email-service.ts` — Email sending (Resend/SendGrid)
+- `lib/auth/auth-js.ts` — Auth.js config with Microsoft photo handling
+- `lib/s3.ts` — S3 client configuration
+- `app/api/documents/proxy/route.ts` — S3 document proxy with dual auth
+- `app/api/sign/submit/route.ts` — Signature submission endpoint
+- `app/sign/[token]/page.tsx` — Public signing page
+- `app/(protected)/send/components/steps/FieldPlacement.tsx` — Field placement UI
+- `database/drizzle/document-signing-schema.ts` — Full database schema
+- `database/drizzle/auth-schema.ts` — Auth tables
+
+## API Routes
+
+- `GET/POST /api/documents` — List/create documents
+- `GET /api/documents/proxy` — Stream PDF from S3 (session or token auth)
+- `POST /api/documents/[id]/send` — Send document to recipients
+- `POST /api/sign/submit` — Submit a signature
+- `POST /api/sign/decline` — Decline to sign
+- `POST /api/sign/verify-token` — Validate signing token
+- `POST /api/upload` — Upload document to S3
+- `GET/POST /api/templates` — Template management
+
+## Database Tables
+
+- `documents` — PDF metadata, status (DRAFT→PENDING→COMPLETED), file paths
+- `document_templates` — Reusable templates (system + user-created)
+- `document_participants` — Recipients with access levels (VIEWER/SIGNER/CC)
+- `signature_requests` — Per-recipient signing status and access tokens
+- `document_annotations` — PDF annotations (JSONB)
+- `document_audit_log` — Full audit trail with IP/user agent
+- `document_notifications` — Email delivery tracking
+
+## Environment Variables
+
+See `.env.sample` for the complete list. Key groups: AUTH_*, DATABASE_URL, RESEND_KEY, AWS_*, NEXT_PUBLIC_NUTRIENT_*.
+
+## Optional: llms-full.txt
+
+For comprehensive technical detail including complete API request/response shapes, database schema with column types, and implementation gotchas, see [llms-full.txt](llms-full.txt).

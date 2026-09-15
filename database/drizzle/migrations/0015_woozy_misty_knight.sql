@@ -1,0 +1,2 @@
+CREATE TYPE "public"."document_finalization_mode" AS ENUM('ELECTRONIC', 'DIGITAL_SEAL');--> statement-breakpoint
+ALTER TABLE "documents" ADD COLUMN "finalization_mode" "document_finalization_mode" DEFAULT 'DIGITAL_SEAL' NOT NULL;

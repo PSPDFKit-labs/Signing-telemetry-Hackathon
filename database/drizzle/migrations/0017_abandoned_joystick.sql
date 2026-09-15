@@ -1,0 +1,1 @@
+ALTER TABLE "document_templates" ADD COLUMN "packet_manifest" jsonb;

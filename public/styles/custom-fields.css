@@ -1,0 +1,72 @@
+/* Custom field styling for the document field placement */
+
+.custom-field-container {
+  border: 2px solid;
+  border-radius: 4px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  opacity: 0.9;
+  position: relative;
+  box-sizing: border-box;
+  min-height: 60px;
+}
+
+.custom-field-recipient {
+  font-size: 12px;
+  font-weight: 600;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 2px 4px;
+  border-radius: 3px;
+  max-width: calc(100% - 8px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0px 0px 1px rgba(255, 255, 255, 0.8);
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.1);
+}
+
+.custom-field-type {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.custom-field-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+  opacity: 0.7;
+}
+
+/* Current recipient field styling */
+.current-recipient-field {
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
+  opacity: 1; /* Make current recipient fields more visible */
+  z-index: 5; /* Ensure they appear above other fields */
+}
+
+/* Current recipient badge styling */
+.current-badge {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: #0066cc;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  box-shadow: 0px 0px 4px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}

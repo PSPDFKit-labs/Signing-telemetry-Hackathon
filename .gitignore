@@ -1,0 +1,54 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+.DS_Store
+
+# env files
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# worktrees
+.worktrees/
+
+# serena
+.serena/
+
+.agents/
+
+# local database
+database/container/
+
+# internal dev files
+memory.md
+NEXT-SESSION-PLAN.md
+project-plan.md
+docs/plans/
+docs/superpowers/
+scripts/check-*
+scripts/test-*
+.playwright-mcp/
+
+# Local acceptance-test PDF artifacts
+tmp/pdfs/
+tmp/csv-check/

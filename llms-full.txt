@@ -1,0 +1,478 @@
+# Nutrient Sign — Full Technical Reference
+
+> This file provides comprehensive technical detail for AI coding assistants working on this codebase.
+> For a concise overview, see [llms.txt](llms.txt).
+
+## Project Identity
+
+- **Name:** Nutrient Sign
+- **Package:** `nutrient-sign`
+- **Framework:** Next.js 16.1.6 (App Router, Turbopack, React 19)
+- **Language:** TypeScript 5.9, strict mode
+- **Deployment:** Vercel
+- **Repository:** GitHub (private)
+
+## Technology Stack (with versions)
+
+- **Next.js** 16.1.6 — App Router, server components, API routes
+- **React** 19.2.4 — Client components with `'use client'` directive
+- **TypeScript** 5.9.3 — Strict mode, path aliases via `@/*`
+- **Nutrient Web SDK** (@nutrient-sdk/viewer ^1.19.0) — PDF viewing, annotation, form fields
+- **Nutrient DWS API** — Server-side digital signatures (CAdES B-LT)
+- **Drizzle ORM** 0.45.1 — Type-safe PostgreSQL queries
+- **Auth.js** (next-auth 5.0.0-beta.30) — JWT sessions, OAuth providers
+- **AWS SDK v3** — S3 client for document storage
+- **Tailwind CSS** 4.2.1 — Utility-first styling via @tailwindcss/postcss
+- **Radix UI** — Dialog, AlertDialog, Dropdown, Select, Tabs, etc.
+- **React Zero UI** — @react-zero-ui/core, @react-zero-ui/icon-sprite
+- **Resend** — Primary email service (HTTP API, no npm package)
+- **Upstash Redis** — Rate limiting (optional, gracefully disabled)
+- **Biome** 2.4.4 — Linting and formatting
+- **pnpm** — Package manager
+
+---
+
+## Complete Project Structure
+
+```
+app/
+  (auth)/
+    login/page.tsx                      # OAuth login page
+    error/page.tsx                      # Auth error page
+  (protected)/
+    dashboard/page.tsx                  # Metrics cards, document overview
+    documents/page.tsx                  # Document list
+    documents/[id]/page.tsx             # Document detail view
+    documents/[id]/components/          # DownloadButton, CancelButton, DeleteButton
+    inbox/page.tsx                      # Documents awaiting user's signature
+    send/page.tsx                       # Send-for-signature workflow
+    send/components/DocumentFlow.tsx    # Multi-step wizard controller
+    send/components/steps/
+      DocumentSelection.tsx             # Step 1: Upload or select template
+      RecipientConfig.tsx               # Step 2: Add recipients
+      FieldPlacement.tsx                # Step 3: Place signature fields
+      EmailCustomization.tsx            # Step 4: Customize email message
+      ReviewAndSend.tsx                 # Step 5: Review and send
+    send/components/steps/field-placement/
+      use-viewer-setup.ts              # Viewer initialization hook
+      use-drag-drop.ts                 # Desktop drag-and-drop
+      use-touch-handling.ts            # Mobile/tablet touch handling
+      utils.ts                         # Field creation utilities
+      types.ts                         # TypeScript interfaces
+      FieldOption.tsx                   # Draggable field palette item
+      FieldList.tsx                     # Placed fields list with delete
+    send/context/
+      DocumentFlowContext.tsx           # Multi-step form state
+      FormPlacementContext.tsx          # Recipient/field state
+      ViewerInstanceContext.tsx         # Shared viewer instance ref
+    signed/page.tsx                     # Completed documents
+    templates/page.tsx                  # Template management
+    trash/page.tsx                      # Soft-deleted documents
+  api/
+    auth/[...nextauth]/route.ts         # Auth.js endpoints
+    avatar/[userId]/route.ts            # Profile photo proxy
+    documents/
+      route.ts                          # GET (list) / POST (create)
+      proxy/route.ts                    # S3 document proxy (session + token auth)
+      certificates/route.ts             # Download signature certificates
+      [id]/route.ts                     # GET document by ID
+      [id]/send/route.ts               # POST send to recipients
+      [id]/resend/route.ts             # POST resend to recipient
+      [id]/cancel/route.ts             # POST cancel document
+      [id]/duplicate/route.ts           # POST duplicate document
+      [id]/duplicate-data/route.ts      # POST get duplicate annotations
+      [id]/fields/route.ts             # GET form fields
+      [id]/recipients/route.ts          # GET/POST recipients
+      [id]/delete/route.ts             # POST soft delete
+      [id]/restore/route.ts            # POST restore from trash
+      [id]/permanent-delete/route.ts    # POST permanent delete
+      permanent-delete-all/route.ts     # POST empty trash
+    sign/
+      submit/route.ts                   # POST submit signature
+      decline/route.ts                  # POST decline to sign
+      verify-token/route.ts             # POST validate signing token
+    templates/
+      route.ts                          # GET (list) / POST (create)
+      delete/route.ts                   # POST delete template
+      download/route.ts                 # GET download template
+      download/stream/route.ts          # GET stream template
+    upload/
+      route.ts                          # POST upload to S3
+      presigned-url/route.ts            # POST get presigned S3 URL
+  sign/
+    [token]/page.tsx                    # Public signing page
+    [token]/success/page.tsx            # Post-signing confirmation
+
+components/
+  ui/                                   # Base UI components (Radix + custom)
+    alert-dialog.tsx                    # Styled confirmation dialogs
+    button.tsx, card.tsx, etc.          # Standard UI primitives
+    document-viewer.tsx                 # Reusable document viewer component
+    top-nav.tsx                         # Navigation with avatar
+  layout/
+    page-layout.tsx                     # Protected page shell
+    page-content.tsx                    # Content wrapper with title
+  nutrient-script.tsx                   # CDN script loader for Nutrient SDK
+  sign-here-widget.tsx                  # Visual "Sign Here" indicator
+  template-preview-dialog.tsx           # Template preview modal
+
+contexts/
+  session-context.tsx                   # Auth session provider
+
+hooks/
+  use-mobile.ts                         # Responsive breakpoint hook
+
+lib/
+  auth/auth-js.ts                       # Auth.js configuration
+  digital-signing.ts                    # DWS API integration
+  email-service.ts                      # Email sending
+  nutrient-viewer.ts                    # PDF viewer wrapper
+  s3.ts                                 # S3 client
+  rate-limit.ts                         # Rate limiting
+  logger.ts                             # Centralized logging
+  config.ts                             # Environment config
+  seed-system-templates.ts              # Template seeder (runs on startup)
+  file-utils.ts                         # File helpers
+  utils.ts                              # General utilities (cn, etc.)
+
+database/drizzle/
+  auth-schema.ts                        # users, accounts, sessions, verificationTokens
+  document-signing-schema.ts            # All document-related tables
+  drizzle.ts                            # Database client initialization
+  drizzle.config.ts                     # Drizzle Kit configuration
+  migrations/                           # Auto-generated SQL migrations
+
+infra/
+  main.tf                              # S3 bucket, policies, CORS
+  variables.tf                         # Terraform variables
+  terraform.tfvars                     # Variable values (gitignored example)
+
+scripts/
+  reset-clean.mjs                      # Empty S3 + reset database
+  reset-database.mjs                   # Reset database only
+  test-email.ts                        # Test email service
+  test-workflow.mjs                    # Test signing workflow
+  run-migration.mjs                    # Run migrations
+```
+
+---
+
+## Database Schema
+
+### Enums
+
+```
+document_status:    DRAFT | PENDING | IN_PROGRESS | COMPLETED | DECLINED | CANCELLED
+signature_status:   PENDING | SIGNED | DECLINED | CANCELLED
+document_access_level: VIEWER | EDITOR | SIGNER | CC
+signature_type:     ELECTRONIC | DIGITAL
+```
+
+### Tables
+
+#### `documents`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | text (UUID) | Primary key, auto-generated |
+| name | text | Document display name |
+| template_id | text | FK → document_templates.id |
+| owner_id | text | FK → users.id (CASCADE) |
+| status | document_status | Default: DRAFT |
+| document_file_path | text | S3 URL of original PDF |
+| signed_document_file_path | text | S3 URL of signed PDF (set on COMPLETED) |
+| document_file_hash | text | SHA hash |
+| size | integer | File size in bytes |
+| expires_at | timestamp | Optional expiration |
+| require_sequential_signing | boolean | Default: false |
+| deleted_at | timestamp | Soft delete (null = active) |
+| created_at | timestamp | Auto-set |
+| updated_at | timestamp | Auto-set |
+
+**Indexes:** owner_id, status
+
+#### `document_templates`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | text | Primary key |
+| name | text | Template display name |
+| creator_id | text | FK → users.id (null for system) |
+| is_system | boolean | Default: false |
+| template_file_path | text | S3 URL |
+| template_file_hash | text | SHA hash |
+| size | integer | File size in bytes |
+| created_at | timestamp | Auto-set |
+
+#### `document_participants`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | text (UUID) | Primary key |
+| document_id | text | FK → documents.id (CASCADE) |
+| user_id | text | FK → users.id (CASCADE) |
+| access_level | document_access_level | VIEWER/EDITOR/SIGNER/CC |
+| signing_order | integer | Default: 0 |
+| is_required | boolean | Default: true |
+
+**Constraints:** UNIQUE(document_id, user_id)
+
+#### `signature_requests`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | text (UUID) | Primary key |
+| document_id | text | FK → documents.id (CASCADE) |
+| participant_id | text | FK → document_participants.id (CASCADE) |
+| signature_type | signature_type | Default: ELECTRONIC |
+| status | signature_status | Default: PENDING |
+| access_token | text | UNIQUE — used in `/sign/[token]` URLs |
+| requested_at | timestamp | Auto-set |
+| signed_at | timestamp | Set when signed |
+| digital_signature_hash | text | Hash of digital signature |
+| signature_certificate_path | text | Certificate file path |
+
+#### `document_annotations`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | text (UUID) | Primary key |
+| document_id | text | FK → documents.id (CASCADE) |
+| creator_id | text | FK → users.id (CASCADE) |
+| annotation_data | jsonb | Full annotation payload |
+| is_finalized | boolean | Default: false |
+| created_at | timestamp | Auto-set |
+
+#### `document_audit_log`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | text (UUID) | Primary key |
+| document_id | text | FK → documents.id (CASCADE) |
+| user_id | text | FK → users.id (nullable) |
+| action | text | Action description |
+| details | jsonb | Additional context |
+| ip_address | inet | Client IP |
+| user_agent | text | Client user agent |
+| created_at | timestamp | Auto-set |
+
+#### `document_notifications`
+| Column | Type | Notes |
+|--------|------|-------|
+| id | text (UUID) | Primary key |
+| document_id | text | FK → documents.id (CASCADE) |
+| recipient_email | text | Email address |
+| notification_type | text | Type of notification |
+| is_delivered | boolean | Default: false |
+| sent_at | timestamp | Auto-set |
+| delivered_at | timestamp | Set on delivery |
+
+---
+
+## Signing Flow (Detailed)
+
+### 1. Document Upload
+- Client uploads PDF via `POST /api/upload` (direct) or `POST /api/upload/presigned-url` (presigned)
+- File stored in S3 under auto-generated key
+- Document record created in `documents` table with status DRAFT
+
+### 2. Field Placement
+- Owner opens FieldPlacement step in the send wizard
+- Nutrient SDK loaded from CDN (`components/nutrient-script.tsx`)
+- Viewer initialized with Form Creator interaction mode
+- Owner drags signature/initials/date fields onto PDF pages
+- Each field associated with a specific recipient via `customData.recipientEmail`
+
+### 3. Send to Recipients
+- `POST /api/documents/[id]/send` creates:
+  - `document_participants` row per recipient
+  - `signature_requests` row per signer (with unique `accessToken`)
+  - Status → PENDING
+- Emails sent via Resend/SendGrid with `/sign/[token]` link
+
+### 4. Recipient Signs
+- Recipient opens `/sign/[token]` → token verified via `POST /api/sign/verify-token`
+- Document loaded through proxy: `GET /api/documents/proxy?key=...&signingToken=...`
+- Recipient fills signature fields and submits via `POST /api/sign/submit`
+- Signature request status → SIGNED, audit log entry created
+
+### 5. Digital Signature (After All Sign)
+- After the last signature, `after()` hook in submit route calls `applyDigitalSignature()`
+- **Build API call:** Appends blank certification page to PDF
+  - Form field: `'document'` → instructions reference: `{ file: 'document' }`
+  - Returns modified PDF buffer
+- **Sign API call:** Applies CAdES B-LT visible signature
+  - Mode: `descriptionOnly`
+  - Position: rect `[156, 316, 300, 160]` on appended page
+  - Includes Nutrient logo (transparent, C2B8AE color)
+  - Signer name: "Nutrient"
+- Signed PDF uploaded to S3 under `signed/{documentId}.pdf`
+- Document status → COMPLETED, `signedDocumentFilePath` set
+
+---
+
+## Authentication
+
+### Configuration (`lib/auth/auth-js.ts`)
+- **Strategy:** JWT (not database sessions)
+- **Adapter:** Drizzle (for user/account persistence)
+- **Providers:** Google (auto-config), Microsoft Entra ID (manual config)
+
+### Key Callbacks
+- **signIn:** Fetches Microsoft profile photo via Graph API, stores as base64 in `users.photo` column
+- **jwt:** Reads fresh `image` URL from DB, guards against data URI bloat in cookies
+- **session:** Injects `user.id` from JWT token into session object
+
+### Avatar Handling
+- Google: Direct URL from OAuth profile, served via Next.js Image
+- Microsoft: Fetched from Graph API on sign-in, stored as base64 in DB, served via `/api/avatar/[userId]` proxy endpoint
+- This avoids HTTP 431 errors from base64 photos bloating JWT cookies
+
+---
+
+## Document Proxy (`/api/documents/proxy`)
+
+The proxy route streams PDFs from S3 and handles three auth paths:
+
+1. **Signing token** — Looks up document via `signatureRequests.accessToken` join. More reliable than file path matching since multiple documents can share the same PDF.
+
+2. **Template ID** — Direct template lookup when `templateId` query param present. Skips document LIKE query which can match documents created from the same template file.
+
+3. **Session auth** — Finds document by ID (preferred) or file path (legacy LIKE fallback). Checks ownership or participant membership.
+
+**Important:** The proxy checks `if (signingToken)` not `if (signingToken && !session)` — token auth works even if the user also has a valid session.
+
+---
+
+## Nutrient SDK Integration
+
+### Script Loading
+`components/nutrient-script.tsx` loads the SDK from CDN:
+```
+https://cdn.cloud.pspdfkit.com/pspdfkit-web@{version}/nutrient-viewer.js
+```
+Version controlled by `NEXT_PUBLIC_NUTRIENT_SDK_VERSION` env var.
+
+### Viewer Wrapper (`lib/nutrient-viewer.ts`)
+- `safeLoadViewer()` — Unloads existing instance, clears container, loads new instance. Injects dark mode toolbar toggle.
+- `safeUnloadViewer()` — Unloads SDK and empties container DOM. Suppresses internal cleanup errors.
+- `getNutrientViewerRuntime()` — Returns `window.NutrientViewer` with runtime type interface (Geometry, Annotations, FormFields, Immutable, InteractionMode).
+
+### Mobile Hydration Guard
+`use-viewer-setup.ts` prevents SDK initialization before `useIsMobile()` has hydrated. Without this, on phones the viewer loads into the desktop container (isMobile=false initially), then isMobile flips to true and the desktop container unmounts, corrupting the SDK state (GdPicture licensing error).
+
+### Form Field Types
+- **Signature** — `SignatureFormField` with `WidgetAnnotation`
+- **Initials** — Same as signature but smaller (75px wide vs 150px)
+- **Date** — `TextFormField` with current date as default value
+
+### Custom Renderers
+Per-recipient color coding applied via `customRenderers.Annotation` callback. Colors distinguish which recipient each field belongs to.
+
+---
+
+## Email Service (`lib/email-service.ts`)
+
+- **Priority:** Resend (via `RESEND_KEY`) → SendGrid (via `AUTH_SENDGRID_KEY`)
+- **Implementation:** Direct HTTP POST (no npm SDK packages)
+- **Templates:** HTML with inline styles, Nutrient branding
+- **Types:** Signature request, reminder, completion, decline notification
+- **Tracking:** All sends recorded in `document_notifications` table
+
+---
+
+## Rate Limiting (`lib/rate-limit.ts`)
+
+Optional Upstash Redis-based sliding window limiters:
+- Upload: 10 requests/minute
+- Send: 5 requests/minute
+- Sign: 10 requests/minute
+- General/Proxy: 60 requests/minute
+
+When `UPSTASH_REDIS_REST_URL` is not set, null limiters are returned (always allow).
+
+---
+
+## S3 Storage Patterns
+
+| Path Pattern | Usage |
+|-------------|-------|
+| `{timestamp}-{hash}.pdf` | User-uploaded documents |
+| `system-templates/{slug}.pdf` | System template PDFs |
+| `signed/{documentId}.pdf` | Digitally signed PDFs |
+
+S3 client uses virtual-hosted-style URLs for CORS compatibility.
+
+---
+
+## Infrastructure (Terraform)
+
+`infra/main.tf` configures:
+- S3 bucket with all public access blocked
+- Bucket policy denying non-HTTPS transport
+- CORS configuration (GET, PUT, POST, DELETE, HEAD)
+- Origins configurable via `allowed_origins` variable
+
+---
+
+## Implementation Gotchas
+
+1. **Unicode logo filename:** The Nutrient logo PNG has Unicode hair spaces (`\u200a`) around the multiplication sign (`\u00d7`) in its filename. Must use Unicode escapes in code.
+
+2. **DWS Build API form field name:** The form field name must match the instructions reference. Use `'document'` as the field name and `{ file: 'document' }` in instructions.
+
+3. **DWS Sign API appearance:** No font size/color/weight controls. Mode options: `signatureAndDescription`, `descriptionOnly`, `signatureOnly`. Rect dimensions and show/hide toggles are the main levers.
+
+4. **JWT cookie bloat:** Microsoft profile photos as base64 data URIs can exceed browser cookie limits (HTTP 431). Photos are stored in DB and served via proxy endpoint instead.
+
+5. **Document proxy LIKE query:** Legacy file path matching via SQL LIKE can match the wrong document when multiple documents share the same PDF. Always prefer ID-based lookup (pass `documentId` or `templateId` query params).
+
+6. **Viewer container cleanup:** Must empty container DOM before reloading the SDK. `safeUnloadViewer()` handles this. Without it, "container is not empty" errors occur.
+
+7. **System template seeding:** Runs on every server startup via `instrumentation.ts`. Idempotent — checks existing DB rows by `templateFilePath` before inserting.
+
+8. **Soft delete pattern:** `documents.deleted_at` timestamp. Null = active, non-null = trashed. Permanent delete removes both DB row and S3 object.
+
+---
+
+## Environment Variables (Complete)
+
+### Required
+| Variable | Description |
+|----------|-------------|
+| `AUTH_SECRET` | NextAuth encryption secret (`npx auth secret`) |
+| `AUTH_GOOGLE_ID` | Google OAuth client ID |
+| `AUTH_GOOGLE_SECRET` | Google OAuth client secret |
+| `DATABASE_URL` | PostgreSQL connection string |
+| `RESEND_KEY` or `AUTH_SENDGRID_KEY` | Email service API key |
+| `EMAIL_FROM` | Verified sender email address |
+| `NEXT_PUBLIC_APP_URL` | Application URL (for email links) |
+| `AWS_ACCESS_KEY_ID` | AWS credentials |
+| `AWS_SECRET_ACCESS_KEY` | AWS credentials |
+| `AWS_REGION` | AWS region (default: us-east-1) |
+| `AWS_S3_BUCKET_NAME` | S3 bucket name |
+| `NEXT_PUBLIC_NUTRIENT_VIEWER_LICENSE_KEY` | Nutrient Web SDK license |
+
+### Optional
+| Variable | Description |
+|----------|-------------|
+| `AUTH_MICROSOFT_ENTRA_ID_ID` | Microsoft OAuth client ID |
+| `AUTH_MICROSOFT_ENTRA_ID_SECRET` | Microsoft OAuth client secret |
+| `AUTH_MICROSOFT_ENTRA_ID_ISSUER` | Microsoft issuer URL |
+| `NEXT_PUBLIC_NUTRIENT_SDK_VERSION` | SDK version (default: 1.19.0) |
+| `NUTRIENT_API_KEY` | DWS API key (for digital signatures) |
+| `NUTRIENT_API_BASE_URL` | DWS API endpoint |
+| `NUTRIENT_LOGO_URL` | CDN-hosted logo for signatures |
+| `UPSTASH_REDIS_REST_URL` | Upstash Redis URL (rate limiting) |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis token |
+
+---
+
+## Development Commands
+
+```bash
+pnpm dev                     # Dev server with Turbopack
+pnpm build                   # Production build
+pnpm build:analyze           # Build with bundle analysis
+pnpm lint                    # ESLint
+pnpm biome:check             # Biome lint check
+pnpm biome:fix               # Biome auto-fix
+pnpm db:generate             # Generate Drizzle migrations
+pnpm db:migrate              # Run migrations
+pnpm db:studio               # Drizzle Studio GUI
+node scripts/reset-clean.mjs # Full reset (S3 + DB)
+```

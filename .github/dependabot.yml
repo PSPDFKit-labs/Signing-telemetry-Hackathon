@@ -1,0 +1,45 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: chore
+      include: scope
+
+    # One PR at a time, one group for everything.
+    #
+    # Every dependency PR regenerates pnpm-lock.yaml against main as it was when
+    # the PR opened, so ANY two open dependency PRs conflict on the lockfile.
+    # An earlier version of this file split updates across eight groups; five
+    # opened at once and the last two had to be rebased by hand. Grouping
+    # everything into a single serialised PR makes that structurally impossible.
+    #
+    # It also keeps packages that must move together in lockstep for free —
+    # next-auth and @auth/* pin @auth/core to an exact version, so bumping one
+    # without the other duplicates @auth/core in the tree.
+    open-pull-requests-limit: 1
+    groups:
+      all-dependencies:
+        patterns:
+          - "*"
+
+    # Routine updates stay within the current major. Framework and library
+    # majors deserve a deliberate upgrade with a manual smoke test.
+    #
+    # This does NOT weaken security coverage: per GitHub's Dependabot options
+    # reference, `ignore` applies to version updates only, so Dependabot
+    # security updates can still open a major-version PR when an advisory
+    # requires one.
+    #
+    # Worth knowing before anyone relaxes this: TypeScript 7 segfaults the
+    # Next build on Vercel native-x64 (silent exit 1), which is why
+    # pnpm-workspace.yaml pins typescript to ^6.0.3. That override is enforced
+    # at install time, so it also neutralises a stray major bump here.
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-major

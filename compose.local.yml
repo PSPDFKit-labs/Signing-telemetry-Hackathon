@@ -1,0 +1,35 @@
+name: resident-interface-local
+services:
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: resident_demo
+      POSTGRES_PASSWORD: local-development-only
+      POSTGRES_DB: resident_demo
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resident_demo"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  storage:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: resident-local
+      MINIO_ROOT_PASSWORD: local-development-only
+    ports:
+      - "127.0.0.1:19000:9000"
+    volumes:
+      - storage:/data
+  mail:
+    image: axllent/mailpit:v1.27.7
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+volumes:
+  database:
+  storage:

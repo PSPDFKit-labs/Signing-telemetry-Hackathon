@@ -1,0 +1,1 @@
+ALTER TABLE "documents" ADD COLUMN "signed_document_file_path" text;
